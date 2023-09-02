@@ -7,4 +7,4 @@ Contains writeups of HTB boxes
 - [Precious](Precious/README.md)
 - [MetaTwo](MetaTwo/README.md)
 - [Interface](Interface/README.md)
-
+- [MonitorsTwo](MonitorsTwo/README.md)
