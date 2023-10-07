@@ -8,3 +8,4 @@ Contains writeups of HTB boxes
 - [MetaTwo](MetaTwo/README.md)
 - [Interface](Interface/README.md)
 - [MonitorsTwo](MonitorsTwo/README.md)
+- [PC](PC/README.md)
