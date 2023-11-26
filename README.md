@@ -9,3 +9,4 @@ Contains writeups of HTB boxes
 - [Interface](Interface/README.md)
 - [MonitorsTwo](MonitorsTwo/README.md)
 - [PC](PC/README.md)
+- [Pilgrimage](Pilgrimage/README.md)
