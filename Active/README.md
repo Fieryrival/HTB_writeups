@@ -182,7 +182,7 @@ accountExpires: 0
 logonCount: 64
 sAMAccountName: Administrator
 sAMAccountType: 805306368
-**servicePrincipalName: active/CIFS:445**
+servicePrincipalName: active/CIFS:445
 objectCategory: CN=Person,CN=Schema,CN=Configuration,DC=active,DC=htb
 isCriticalSystemObject: TRUE
 dSCorePropagationData: 20180718203435.0Z

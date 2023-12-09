@@ -11,3 +11,4 @@ Contains writeups of HTB boxes
 - [PC](PC/README.md)
 - [Pilgrimage](Pilgrimage/README.md)
 - [Active](Active/README.md)
+- [Authority](Authority/README.md)
